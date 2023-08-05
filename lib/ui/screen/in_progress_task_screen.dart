@@ -1,25 +1,72 @@
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_task_manager_project/data/models/network_response.dart';
+import 'package:flutter_task_manager_project/data/models/progress_model.dart';
+import 'package:flutter_task_manager_project/data/service/network_caller.dart';
+import 'package:flutter_task_manager_project/data/utils/urls.dart';
 import 'package:flutter_task_manager_project/ui/widgets/screen_background.dart';
 import 'package:flutter_task_manager_project/ui/widgets/task_list_tile.dart';
 import 'package:flutter_task_manager_project/ui/widgets/user_profile_banner.dart';
 
-class InProgressScreen extends StatelessWidget {
+class InProgressScreen extends StatefulWidget {
   const InProgressScreen({super.key});
 
   @override
+  State<InProgressScreen> createState() => _InProgressScreenState();
+}
+
+class _InProgressScreenState extends State<InProgressScreen> {
+    ProgressModel _progressModel = ProgressModel();
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((timeStamp) {
+      getInProgressTasks();
+    });
+  }
+
+
+  bool _getProgressTasksInProgress = false;
+
+  Future<void> getInProgressTasks() async {
+    _getProgressTasksInProgress = true;
+    if (mounted) {
+      setState(() {});
+    }
+
+    final NetworkResponse response =
+        await NetworkCaller().getRequest(Urls.progressTasks);
+
+    if (response.isSuccess) {
+      _progressModel = ProgressModel.fromJson(response.body!);
+    } else {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Progress data get failed')));
+      }
+    }
+    _getProgressTasksInProgress = true;
+    if (mounted) {
+      setState(() {});
+    }
+  }
+
+  @override
   Widget build(BuildContext context) {
-  return Scaffold(
+    return Scaffold(
       body: ScreenBackground(
           child: Column(
         children: [
-           const UserProfileBanner(),
-
+          const UserProfileBanner(),
           Expanded(
-              child: ListView.separated(
-            itemCount: 20,
+              child:_getProgressTasksInProgress ? const Center(child: CupertinoActivityIndicator()) : ListView.separated(
+            itemCount: _progressModel.data?.length ?? 0,
             itemBuilder: (context, index) {
-              return  const TaskListTile(
-                chipText: "Progress",
+              return  TaskListTile(
+                title: _progressModel.data?[index].title ?? 'Unknown',
+                description: _progressModel.data?[index].description ?? '',
+                date: _progressModel.data?[index].createdDate ?? '',
+                chipText: _progressModel.data?[index].status ?? '',
                 color: Colors.blueAccent,
               );
             },

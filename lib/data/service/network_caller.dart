@@ -19,6 +19,8 @@ class NetworkCaller {
 
       if (response.statusCode == 200) {
         return NetworkResponse(isSuccess: true,statusCode: response.statusCode,body: jsonDecode(response.body));
+      }else if (response.statusCode == 401) {
+        gotoLogin();
       } else {
         return NetworkResponse(isSuccess: false, statusCode: response.statusCode, body: null);
       }
@@ -30,7 +32,7 @@ class NetworkCaller {
   }
 
   ///----------------------------------Post Method---------------------------------------
-  Future<NetworkResponse> postRequest(String url, Map<String, dynamic> body) async {
+  Future<NetworkResponse> postRequest(String url, Map<String, dynamic> body,{bool isLogin = false}) async {
     try {
       Response response = await post(Uri.parse(url),headers: {'Content-type': 'application/json','token':AuthUtility.userInfo.token.toString()},body: jsonEncode(body));
       
@@ -40,7 +42,9 @@ class NetworkCaller {
       if (response.statusCode == 200) {
         return NetworkResponse(isSuccess: true,statusCode: response.statusCode,body: jsonDecode(response.body));
       } else if (response.statusCode == 401) {
-        gotoLogin();
+        if(isLogin){
+          gotoLogin();
+        }
       } else {
         return NetworkResponse(isSuccess: false, statusCode: response.statusCode, body: null);
       }
@@ -53,7 +57,7 @@ class NetworkCaller {
    Future<void> gotoLogin() async {
     await AuthUtility.clearUserInfo();
     Navigator.pushAndRemoveUntil(
-        TaskManagerApp.globalKey.currentState!.context,
+         TaskManagerApp.globalKey.currentContext!, // TaskManagerApp.globalKey.currentState!.context,
         MaterialPageRoute(builder: (context) => const LoginScreen()),
         (route) => false);
   }

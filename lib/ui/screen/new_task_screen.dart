@@ -1,68 +1,174 @@
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_task_manager_project/data/models/network_response.dart';
+import 'package:flutter_task_manager_project/data/models/summary_count_model.dart';
+import 'package:flutter_task_manager_project/data/models/task_list_model.dart';
+import 'package:flutter_task_manager_project/data/service/network_caller.dart';
+import 'package:flutter_task_manager_project/data/utils/urls.dart';
 import 'package:flutter_task_manager_project/ui/screen/add_new_task_screen.dart';
 import 'package:flutter_task_manager_project/ui/widgets/sammary_card.dart';
 import 'package:flutter_task_manager_project/ui/widgets/screen_background.dart';
 import 'package:flutter_task_manager_project/ui/widgets/task_list_tile.dart';
 import 'package:flutter_task_manager_project/ui/widgets/user_profile_banner.dart';
 
-class NewTaskScreen extends StatelessWidget {
+class NewTaskScreen extends StatefulWidget {
   const NewTaskScreen({super.key});
+
+  @override
+  State<NewTaskScreen> createState() => _NewTaskScreenState();
+}
+
+class _NewTaskScreenState extends State<NewTaskScreen> {
+  SummaryCountModel _summaryCountModel = SummaryCountModel();
+  TaskListModel _taskListModel = TaskListModel();
+
+  bool _getCountSummaryInProgress = false, _getNewTaskInProgress = false;
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((timeStamp) {
+      getCountSummary();
+      getNewTasks();
+    });
+  }
+
+  Future<void> getCountSummary() async {
+    _getCountSummaryInProgress = true;
+    if (mounted) {
+      setState(() {});
+    }
+    final NetworkResponse response =
+        await NetworkCaller().getRequest(Urls.taskStatusCount);
+
+    if (response.isSuccess) {
+      _summaryCountModel = SummaryCountModel.fromJson(response.body!);
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Summary data get Success')));
+      }
+    } else {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Summary data get failed')));
+      }
+    }
+
+    _getCountSummaryInProgress = false;
+    if (mounted) {
+      setState(() {});
+    }
+  }
+
+  Future<void> getNewTasks() async {
+    _getNewTaskInProgress = true;
+    if (mounted) {
+      setState(() {});
+    }
+    final NetworkResponse response =
+        await NetworkCaller().getRequest(Urls.newTasks);
+
+    if (response.isSuccess) {
+      _taskListModel = TaskListModel.fromJson(response.body!);
+      // if (mounted) {
+      //   ScaffoldMessenger.of(context).showSnackBar(
+      //       const SnackBar(content: Text('get new task data Success')));
+      // }
+    } else {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('get new task data failed')));
+      }
+    }
+
+    _getNewTaskInProgress = false;
+    if (mounted) {
+      setState(() {});
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       body: ScreenBackground(
+        child: RefreshIndicator(
+          onRefresh: () async {
+            getNewTasks();
+            getCountSummary();
+          },
           child: Column(
-        children: [
-           const UserProfileBanner(),
-         const Padding(
-            padding:  EdgeInsets.all(8.0),
-            child:  Row(
-              children: [
-                Expanded(
-                    child: SummaryCard(
-                  number: 120,
-                  title: "New",
-                )),
-                Expanded(
-                    child: SummaryCard(
-                  number: 120,
-                  title: "Progress",
-                )),
-                Expanded(
-                    child: SummaryCard(
-                  number: 120,
-                  title: "Canclelled",
-                )),
-                Expanded(
-                    child: SummaryCard(
-                  number: 120,
-                  title: "Complete",
-                )),
-              ],
-            ),
+            children: [
+              const UserProfileBanner(),
+              _getCountSummaryInProgress
+                  ? const LinearProgressIndicator()
+                  : Padding(
+                      padding: const EdgeInsets.all(8.0),
+                      child: SizedBox(
+                        height: 80,
+                        width: double.infinity,
+                        child: ListView.builder(
+                            scrollDirection: Axis.horizontal,
+                            itemCount: _summaryCountModel.data?.length ?? 0,
+                            itemBuilder: (context, index) {
+                              return SummaryCard(
+                                number:
+                                    _summaryCountModel.data?[index].sum ?? 0,
+                                title: _summaryCountModel.data?[index].sId ??
+                                    "New",
+                              );
+                            }),
+                      )),
+              Expanded(
+                  child: _getNewTaskInProgress
+                      ?  const Center(
+                        child: SizedBox(
+                          height: 320,
+                          width: 220,
+                          child: AlertDialog(
+                            content: Column(
+                              mainAxisSize: MainAxisSize.min,
+                              
+                              children: [
+                                CupertinoActivityIndicator(
+                                  radius: 20,
+                                  color: Colors.black,
+                                ),
+                                SizedBox(height: 10),
+                                Text(
+                                  'Loading....',
+                                  style: TextStyle(color: Colors.black),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+                      )
+                      : ListView.separated(
+                          itemCount: _taskListModel.data?.length ?? 0,
+                          itemBuilder: (context, index) {
+                            return TaskListTile(
+                              title: _taskListModel.data?[index].title ??
+                                  'Unknown',
+                              description:
+                                  _taskListModel.data?[index].description ?? '',
+                              date:
+                                  _taskListModel.data?[index].createdDate ?? '',
+                              chipText:
+                                  _taskListModel.data?[index].status ?? 'New',
+                             
+                              color: Colors.blue,
+                            );
+                          },
+                          separatorBuilder: (context, index) => Divider(
+                            height: 10,
+                            thickness: 4,
+                            color: Colors.grey.shade200,
+                          ),
+                        )),
+            ],
           ),
-          Expanded(
-              child: ListView.separated(
-            itemCount: 20,
-            itemBuilder: (context, index) {
-              return  const TaskListTile(
-                chipText: "New",
-                color: Colors.blue,
-              );
-            },
-            separatorBuilder: (context, index) => Divider(
-              height: 10,
-              thickness: 4,
-              color: Colors.grey.shade200,
-            ),
-          )),
-          
-        ],
-        
+        ),
       ),
-      ),
-       floatingActionButton: FloatingActionButton(
+      floatingActionButton: FloatingActionButton(
         child: const Icon(Icons.add),
         onPressed: () {
           Navigator.push(
@@ -72,7 +178,174 @@ class NewTaskScreen extends StatelessWidget {
         },
       ),
     );
-    
   }
 }
 
+
+
+
+
+
+
+
+
+// import 'package:flutter/cupertino.dart';
+// import 'package:flutter/material.dart';
+// import 'package:flutter_task_manager_project/data/models/network_response.dart';
+// import 'package:flutter_task_manager_project/data/models/summary_count_model.dart';
+// import 'package:flutter_task_manager_project/data/models/task_list_model.dart';
+// import 'package:flutter_task_manager_project/data/service/network_caller.dart';
+// import 'package:flutter_task_manager_project/data/utils/urls.dart';
+// import 'package:flutter_task_manager_project/ui/screen/add_new_task_screen.dart';
+// import 'package:flutter_task_manager_project/ui/widgets/sammary_card.dart';
+// import 'package:flutter_task_manager_project/ui/widgets/screen_background.dart';
+// import 'package:flutter_task_manager_project/ui/widgets/task_list_tile.dart';
+// import 'package:flutter_task_manager_project/ui/widgets/user_profile_banner.dart';
+
+// class NewTaskScreen extends StatefulWidget {
+//   const NewTaskScreen({super.key});
+
+//   @override
+//   State<NewTaskScreen> createState() => _NewTaskScreenState();
+// }
+
+// class _NewTaskScreenState extends State<NewTaskScreen> {
+//   SummaryCountModel _summaryCountModel = SummaryCountModel();
+//   TaskListModel _taskListModel = TaskListModel();
+
+//   bool _getCountSummaryInProgress = false, _getNewTaskInProgress = false;
+//   @override
+//   void initState() {
+//     super.initState();
+//     WidgetsBinding.instance.addPostFrameCallback((timeStamp) {
+//       getCountSummary();
+//       getNewTasks();
+//     });
+//   }
+
+//   Future<void> getCountSummary() async {
+//     _getCountSummaryInProgress = true;
+//     if (mounted) {
+//       setState(() {});
+//     }
+//     final NetworkResponse response =
+//         await NetworkCaller().getRequest(Urls.taskStatusCount);
+
+//     if (response.isSuccess) {
+//       _summaryCountModel = SummaryCountModel.fromJson(response.body!);
+//       if (mounted) {
+//         ScaffoldMessenger.of(context).showSnackBar(
+//             const SnackBar(content: Text('Summary data get Success')));
+//       }
+//     } else {
+//       if (mounted) {
+//         ScaffoldMessenger.of(context).showSnackBar(
+//             const SnackBar(content: Text('Summary data get failed')));
+//       }
+//     }
+
+//     _getCountSummaryInProgress = false;
+//     if (mounted) {
+//       setState(() {});
+//     }
+//   }
+
+//   Future<void> getNewTasks() async {
+//     _getNewTaskInProgress = true;
+//     if (mounted) {
+//       setState(() {});
+//     }
+//     final NetworkResponse response =
+//         await NetworkCaller().getRequest(Urls.newTasks);
+
+//     if (response.isSuccess) {
+//       _taskListModel = TaskListModel.fromJson(response.body!);
+//       if (mounted) {
+//         ScaffoldMessenger.of(context).showSnackBar(
+//             const SnackBar(content: Text('get new task data Success')));
+//       }
+//     } else {
+//       if (mounted) {
+//         ScaffoldMessenger.of(context).showSnackBar(
+//             const SnackBar(content: Text('get new task data failed')));
+//       }
+//     }
+
+//     _getNewTaskInProgress = false;
+//     if (mounted) {
+//       setState(() {});
+//     }
+//   }
+
+//   @override
+//   Widget build(BuildContext context) {
+//     return Scaffold(
+//       body: ScreenBackground(
+//         child: Column(
+//           children: [
+//             const UserProfileBanner(),
+//             _getCountSummaryInProgress
+//                 ? const LinearProgressIndicator()
+//                 : const Padding(
+//                     padding: EdgeInsets.all(8.0),
+//                     child: Row(
+//                       children: [
+//                         Expanded(
+//                             child: SummaryCard(
+//                           number: 120,
+//                           title: "New",
+//                         )),
+//                         Expanded(
+//                             child: SummaryCard(
+//                           number: 120,
+//                           title: "Progress",
+//                         )),
+//                         Expanded(
+//                             child: SummaryCard(
+//                           number: 120,
+//                           title: "Canclelled",
+//                         )),
+//                         Expanded(
+//                             child: SummaryCard(
+//                           number: 120,
+//                           title: "Complete",
+//                         )),
+//                       ],
+//                     ),
+//                   ),
+//             Expanded(
+//                 child: RefreshIndicator(
+//                   onRefresh: ()async {
+//                        getNewTasks();
+//                    },
+//                   child:_getNewTaskInProgress ? const Center(child:  CupertinoActivityIndicator(radius: 20,color: Colors.black,)) : ListView.separated(
+//                               itemCount: _taskListModel.data?.length ?? 0,
+//                               itemBuilder: (context, index) {
+//                   return TaskListTile(
+//                     data: _taskListModel.data![index],
+//                     // chipText: "New",
+//                     color: Colors.blue,
+//                   );
+//                               },
+//                               separatorBuilder: (context, index) => Divider(
+//                   height: 10,
+//                   thickness: 4,
+//                   color: Colors.grey.shade200,
+//                               ),
+//                             ),
+//                 )),
+//           ],
+//         ),
+//       ),
+//       floatingActionButton: FloatingActionButton(
+//         child: const Icon(Icons.add),
+//         onPressed: () {
+//           Navigator.push(
+//               context,
+//               MaterialPageRoute(
+//                   builder: (context) => const AddNewTaskScreen()));
+//         },
+//       ),
+//     );
+//   }
+// }
