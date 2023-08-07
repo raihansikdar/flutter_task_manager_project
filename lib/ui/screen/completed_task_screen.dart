@@ -49,7 +49,7 @@ class _CompleteTaskScreenState extends State<CompleteTaskScreen> {
       body: ScreenBackground(
           child: Column(
         children: [
-          const UserProfileBanner(),
+           const UserProfileBanner(isUpdateScreen: false),
           Expanded(
               child: ListView.separated(
             itemCount: _completedTaskModel.data?.length ?? 0,
@@ -60,6 +60,8 @@ class _CompleteTaskScreenState extends State<CompleteTaskScreen> {
                 date: _completedTaskModel.data?[index].createdDate ?? '',
                 chipText: _completedTaskModel.data?[index].status ?? '',
                 color: Colors.green,
+                onDeleteTab: () {  }, 
+                onEditTab: () {  },
               );
             },
             separatorBuilder: (context, index) => Divider(

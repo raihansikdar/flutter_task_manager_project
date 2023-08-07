@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_task_manager_project/data/models/task_list_model.dart';
+//import 'package:flutter_task_manager_project/data/models/task_list_model.dart';
 
 class TaskListTile extends StatelessWidget {
   final Color color;
@@ -7,6 +7,7 @@ class TaskListTile extends StatelessWidget {
   final String title;
   final String description;
   final String date;
+  final VoidCallback onDeleteTab, onEditTab;
   // final TaskData data;
   const TaskListTile({
     super.key,
@@ -15,7 +16,9 @@ class TaskListTile extends StatelessWidget {
     required this.title,
     required this.description,
     required this.date, 
- // required this.data,
+    required this.onDeleteTab, 
+    required this.onEditTab,
+    // required this.data,
   });
 
   @override
@@ -31,20 +34,20 @@ class TaskListTile extends StatelessWidget {
             children: [
               Chip(
                 label: Text(
-                 chipText,
+                  chipText,
                   style: const TextStyle(color: Colors.white),
                 ),
                 backgroundColor: color,
               ),
               const Spacer(),
               IconButton(
-                  onPressed: () {},
+                  onPressed: onEditTab,
                   icon: const Icon(
                     Icons.edit,
                     color: Colors.green,
                   )),
               IconButton(
-                  onPressed: () {},
+                  onPressed: onDeleteTab,
                   icon: Icon(
                     Icons.delete_forever_outlined,
                     color: Colors.red.shade300,

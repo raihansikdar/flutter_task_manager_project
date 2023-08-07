@@ -6,6 +6,8 @@ import 'package:flutter_task_manager_project/data/models/task_list_model.dart';
 import 'package:flutter_task_manager_project/data/service/network_caller.dart';
 import 'package:flutter_task_manager_project/data/utils/urls.dart';
 import 'package:flutter_task_manager_project/ui/screen/add_new_task_screen.dart';
+import 'package:flutter_task_manager_project/ui/screen/update_status_task_screen.dart';
+import 'package:flutter_task_manager_project/ui/screen/update_task_screen.dart';
 import 'package:flutter_task_manager_project/ui/widgets/sammary_card.dart';
 import 'package:flutter_task_manager_project/ui/widgets/screen_background.dart';
 import 'package:flutter_task_manager_project/ui/widgets/task_list_tile.dart';
@@ -86,6 +88,65 @@ class _NewTaskScreenState extends State<NewTaskScreen> {
     }
   }
 
+  Future<void> deleteTask(String taskId) async {
+    final NetworkResponse response =
+        await NetworkCaller().getRequest(Urls.deleteTasks(taskId));
+
+    if (response.isSuccess) {
+      _taskListModel.data!.removeWhere((element) => element.sId == taskId);
+      if (mounted) {
+        setState(() {});
+      }
+      //  getNewTasks(); /// api call kore delete
+    } else {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Deletion of task has been failed')));
+      }
+    }
+  }
+
+ 
+
+  void showEditBottomSheet(
+      {required String taskId,
+      required String currentTitle,
+      required String currentDescription}) {
+    final TextEditingController _titleController =
+        TextEditingController(text: currentTitle);
+    final TextEditingController _descriptionController =
+        TextEditingController(text: currentDescription);
+    showModalBottomSheet(
+        isScrollControlled: true,
+        context: context,
+        builder: (context) {
+          return UpdateTaskSheet(
+            titleController: _titleController,
+            descriptionController: _descriptionController,
+            onUpdate: () {
+              getNewTasks();
+            },
+          );
+        });
+  }
+
+  void showStatusUpdateBottomSheet(
+      {required String taskId, required String taskStatus}) {
+    showModalBottomSheet(
+        isScrollControlled: true,
+        context: context,
+        builder: (context) {
+          return UpdateStatusTaskScreen(
+              taskId: taskId,
+              taskStatus: taskStatus,
+              onUpdate: () {
+                getNewTasks();
+              });
+        });
+  }
+
+
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -97,7 +158,7 @@ class _NewTaskScreenState extends State<NewTaskScreen> {
           },
           child: Column(
             children: [
-              const UserProfileBanner(),
+             const UserProfileBanner(isUpdateScreen: false),
               _getCountSummaryInProgress
                   ? const LinearProgressIndicator()
                   : Padding(
@@ -119,29 +180,28 @@ class _NewTaskScreenState extends State<NewTaskScreen> {
                       )),
               Expanded(
                   child: _getNewTaskInProgress
-                      ?  const Center(
-                        child: SizedBox(
-                          height: 320,
-                          width: 220,
-                          child: AlertDialog(
-                            content: Column(
-                              mainAxisSize: MainAxisSize.min,
-                              
-                              children: [
-                                CupertinoActivityIndicator(
-                                  radius: 20,
-                                  color: Colors.black,
-                                ),
-                                SizedBox(height: 10),
-                                Text(
-                                  'Loading....',
-                                  style: TextStyle(color: Colors.black),
-                                ),
-                              ],
+                      ? const Center(
+                          child: SizedBox(
+                            height: 320,
+                            width: 220,
+                            child: AlertDialog(
+                              content: Column(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  CupertinoActivityIndicator(
+                                    radius: 20,
+                                    color: Colors.black,
+                                  ),
+                                  SizedBox(height: 10),
+                                  Text(
+                                    'Loading....',
+                                    style: TextStyle(color: Colors.black),
+                                  ),
+                                ],
+                              ),
                             ),
                           ),
-                        ),
-                      )
+                        )
                       : ListView.separated(
                           itemCount: _taskListModel.data?.length ?? 0,
                           itemBuilder: (context, index) {
@@ -154,8 +214,24 @@ class _NewTaskScreenState extends State<NewTaskScreen> {
                                   _taskListModel.data?[index].createdDate ?? '',
                               chipText:
                                   _taskListModel.data?[index].status ?? 'New',
-                             
                               color: Colors.blue,
+                              onDeleteTab: () {
+                                deleteTask(_taskListModel.data![index].sId!);
+                              },
+                              onEditTab: () {
+                                showStatusUpdateBottomSheet(
+                                  taskId: _taskListModel.data![index].sId!,
+                                  taskStatus:
+                                      _taskListModel.data![index].status!,
+                                );
+                                // showEditBottomSheet(
+                                //   taskId: _taskListModel.data![index].sId!,
+                                //   currentTitle:
+                                //       _taskListModel.data![index].title!,
+                                //   currentDescription:
+                                //       _taskListModel.data![index].description!,
+                                // );
+                              },
                             );
                           },
                           separatorBuilder: (context, index) => Divider(
@@ -180,6 +256,8 @@ class _NewTaskScreenState extends State<NewTaskScreen> {
     );
   }
 }
+
+
 
 
 

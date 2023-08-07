@@ -56,7 +56,7 @@ class _CancellTaskScreenState extends State<CancellTaskScreen> {
       body: ScreenBackground(
           child: Column(
         children: [
-          const UserProfileBanner(),
+          const UserProfileBanner(isUpdateScreen: false),
           Expanded(
               child: ListView.separated(
             itemCount: _cancelTaskModel.data?.length ?? 0,
@@ -68,6 +68,8 @@ class _CancellTaskScreenState extends State<CancellTaskScreen> {
                 date: _cancelTaskModel.data?[index].createdDate ?? '',
                 chipText: _cancelTaskModel.data?[index].status?? '',
                 color: Colors.red,
+                onDeleteTab: () {  }, 
+                onEditTab: () {  },
               );
             },
             separatorBuilder: (context, index) => Divider(

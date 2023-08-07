@@ -1,7 +1,8 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_task_manager_project/data/models/network_response.dart';
-import 'package:flutter_task_manager_project/data/models/progress_model.dart';
+//import 'package:flutter_task_manager_project/data/models/progress_model.dart';
+import 'package:flutter_task_manager_project/data/models/task_list_model.dart';
 import 'package:flutter_task_manager_project/data/service/network_caller.dart';
 import 'package:flutter_task_manager_project/data/utils/urls.dart';
 import 'package:flutter_task_manager_project/ui/widgets/screen_background.dart';
@@ -16,7 +17,8 @@ class InProgressScreen extends StatefulWidget {
 }
 
 class _InProgressScreenState extends State<InProgressScreen> {
-    ProgressModel _progressModel = ProgressModel();
+   // ProgressModel _progressModel = ProgressModel();
+     TaskListModel _taskListModel = TaskListModel();
   @override
   void initState() {
     super.initState();
@@ -38,7 +40,7 @@ class _InProgressScreenState extends State<InProgressScreen> {
         await NetworkCaller().getRequest(Urls.progressTasks);
 
     if (response.isSuccess) {
-      _progressModel = ProgressModel.fromJson(response.body!);
+      _taskListModel = TaskListModel.fromJson(response.body!);
     } else {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -57,17 +59,19 @@ class _InProgressScreenState extends State<InProgressScreen> {
       body: ScreenBackground(
           child: Column(
         children: [
-          const UserProfileBanner(),
+          const UserProfileBanner(isUpdateScreen: false),
           Expanded(
               child:_getProgressTasksInProgress ? const Center(child: CupertinoActivityIndicator()) : ListView.separated(
-            itemCount: _progressModel.data?.length ?? 0,
+            itemCount: _taskListModel.data?.length ?? 0,
             itemBuilder: (context, index) {
               return  TaskListTile(
-                title: _progressModel.data?[index].title ?? 'Unknown',
-                description: _progressModel.data?[index].description ?? '',
-                date: _progressModel.data?[index].createdDate ?? '',
-                chipText: _progressModel.data?[index].status ?? '',
-                color: Colors.blueAccent,
+                title: _taskListModel.data?[index].title ?? 'Unknown',
+                description: _taskListModel.data?[index].description ?? '',
+                date: _taskListModel.data?[index].createdDate ?? '',
+                chipText: _taskListModel.data?[index].status ?? '',
+                color: Colors.blueAccent, 
+                onDeleteTab: () {  }, 
+                onEditTab: () {  },
               );
             },
             separatorBuilder: (context, index) => Divider(
