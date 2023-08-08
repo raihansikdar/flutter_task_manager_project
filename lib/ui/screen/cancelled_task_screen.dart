@@ -1,3 +1,4 @@
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_task_manager_project/data/models/cancel_task_model.dart';
 import 'package:flutter_task_manager_project/data/models/network_response.dart';
@@ -28,7 +29,7 @@ class _CancellTaskScreenState extends State<CancellTaskScreen> {
   bool isCancelTask = false;
 
   Future<void> getCancelTask() async {
-    isCancelTask == true;
+    isCancelTask = true;
     if (mounted) {
       setState(() {});
     }
@@ -44,7 +45,7 @@ class _CancellTaskScreenState extends State<CancellTaskScreen> {
       }
     }
 
-    isCancelTask == false;
+    isCancelTask = false;
     if (mounted) {
       setState(() {});
     }
@@ -58,7 +59,7 @@ class _CancellTaskScreenState extends State<CancellTaskScreen> {
         children: [
           const UserProfileBanner(isUpdateScreen: false),
           Expanded(
-              child: ListView.separated(
+              child: isCancelTask ? const Center(child: CupertinoActivityIndicator()): ListView.separated(
             itemCount: _cancelTaskModel.data?.length ?? 0,
             itemBuilder: (context, index) {
             

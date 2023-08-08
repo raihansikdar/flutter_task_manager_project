@@ -19,7 +19,7 @@ class UpdateStatusTaskScreen extends StatefulWidget {
 }
 
 class _UpdateStatusTaskScreenState extends State<UpdateStatusTaskScreen> {
-  List<String> taskStatusList = ['new', 'progress', 'cancel', 'completed'];
+  List<String> taskStatusList = ['New', 'Progress', 'Cancel', 'Completed'];
 
   late String _selectedTask;
   bool updateTaskProgress = false;

@@ -25,9 +25,14 @@ class _CompleteTaskScreenState extends State<CompleteTaskScreen> {
       getCompletedTasks();
     });
   }
-
+  bool _getProgressTasksInProgress = false;
 
   Future<void> getCompletedTasks() async {
+      _getProgressTasksInProgress = true;
+    if (mounted) {
+      setState(() {});
+    }
+
 
     final NetworkResponse response =
         await NetworkCaller().getRequest(Urls.completedTasks);
@@ -40,6 +45,11 @@ class _CompleteTaskScreenState extends State<CompleteTaskScreen> {
             const SnackBar(content: Text('Progress data get failed')));
       }
     }
+      _getProgressTasksInProgress = false;
+    if (mounted) {
+      setState(() {});
+    }
+
  
   }
 
@@ -51,7 +61,7 @@ class _CompleteTaskScreenState extends State<CompleteTaskScreen> {
         children: [
            const UserProfileBanner(isUpdateScreen: false),
           Expanded(
-              child: ListView.separated(
+              child:_getProgressTasksInProgress ? Center(child: CircularProgressIndicator()): ListView.separated(
             itemCount: _completedTaskModel.data?.length ?? 0,
             itemBuilder: (context, index) {
               return TaskListTile(

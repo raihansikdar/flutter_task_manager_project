@@ -1,10 +1,11 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_task_manager_project/data/models/network_response.dart';
-//import 'package:flutter_task_manager_project/data/models/progress_model.dart';
+import 'package:flutter_task_manager_project/data/models/progress_model.dart';
 import 'package:flutter_task_manager_project/data/models/task_list_model.dart';
 import 'package:flutter_task_manager_project/data/service/network_caller.dart';
 import 'package:flutter_task_manager_project/data/utils/urls.dart';
+import 'package:flutter_task_manager_project/ui/screen/add_new_task_screen.dart';
 import 'package:flutter_task_manager_project/ui/widgets/screen_background.dart';
 import 'package:flutter_task_manager_project/ui/widgets/task_list_tile.dart';
 import 'package:flutter_task_manager_project/ui/widgets/user_profile_banner.dart';
@@ -17,8 +18,8 @@ class InProgressScreen extends StatefulWidget {
 }
 
 class _InProgressScreenState extends State<InProgressScreen> {
-   // ProgressModel _progressModel = ProgressModel();
-     TaskListModel _taskListModel = TaskListModel();
+    ProgressModel _progressModel = ProgressModel();
+     //TaskListModel _taskListModel = TaskListModel();
   @override
   void initState() {
     super.initState();
@@ -40,14 +41,14 @@ class _InProgressScreenState extends State<InProgressScreen> {
         await NetworkCaller().getRequest(Urls.progressTasks);
 
     if (response.isSuccess) {
-      _taskListModel = TaskListModel.fromJson(response.body!);
+      _progressModel = ProgressModel.fromJson(response.body!);
     } else {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(content: Text('Progress data get failed')));
       }
     }
-    _getProgressTasksInProgress = true;
+    _getProgressTasksInProgress = false;
     if (mounted) {
       setState(() {});
     }
@@ -62,13 +63,13 @@ class _InProgressScreenState extends State<InProgressScreen> {
           const UserProfileBanner(isUpdateScreen: false),
           Expanded(
               child:_getProgressTasksInProgress ? const Center(child: CupertinoActivityIndicator()) : ListView.separated(
-            itemCount: _taskListModel.data?.length ?? 0,
+            itemCount: _progressModel.data?.length ?? 0,
             itemBuilder: (context, index) {
               return  TaskListTile(
-                title: _taskListModel.data?[index].title ?? 'Unknown',
-                description: _taskListModel.data?[index].description ?? '',
-                date: _taskListModel.data?[index].createdDate ?? '',
-                chipText: _taskListModel.data?[index].status ?? '',
+                title: _progressModel.data?[index].title ?? 'Unknown',
+                description: _progressModel.data?[index].description ?? '',
+                date: _progressModel.data?[index].createdDate ?? '',
+                chipText: _progressModel.data?[index].status ?? '',
                 color: Colors.blueAccent, 
                 onDeleteTab: () {  }, 
                 onEditTab: () {  },
@@ -81,7 +82,17 @@ class _InProgressScreenState extends State<InProgressScreen> {
             ),
           ))
         ],
-      )),
+      ),
+      ),
+        floatingActionButton: FloatingActionButton(
+        child: const Icon(Icons.add),
+        onPressed: () {
+          Navigator.push(
+              context,
+              MaterialPageRoute(
+                  builder: (context) => const AddNewTaskScreen()));
+        },
+      ),
     );
   }
 }

@@ -42,8 +42,8 @@ class _AddNewTaskScreenState extends State<AddNewTaskScreen> {
     if (response.isSuccess) {
       _titleController.clear();
       _descriptionController.clear();
-       
-       if (mounted) {
+
+      if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(content: Text('Task added successfully')));
       }
@@ -63,7 +63,7 @@ class _AddNewTaskScreenState extends State<AddNewTaskScreen> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-               const UserProfileBanner(isUpdateScreen: false),
+              const UserProfileBanner(isUpdateScreen: false),
               Padding(
                 padding: const EdgeInsets.all(16.0),
                 child: Column(
@@ -101,8 +101,14 @@ class _AddNewTaskScreenState extends State<AddNewTaskScreen> {
                       child: ElevatedButton(
                           onPressed: () {
                             addNewTask();
+                          
                           },
-                          child: _adNewTaskInProgress ? const CupertinoActivityIndicator(color: Colors.white,radius: 13.0,) : const Icon(Icons.arrow_circle_right_outlined)),
+                          child: _adNewTaskInProgress
+                              ? const CupertinoActivityIndicator(
+                                  color: Colors.white,
+                                  radius: 13.0,
+                                )
+                              : const Icon(Icons.arrow_circle_right_outlined)),
                     ),
                   ],
                 ),
