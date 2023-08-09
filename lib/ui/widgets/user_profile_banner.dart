@@ -35,11 +35,11 @@ class _UserProfileBannerState extends State<UserProfileBanner> {
                 visible: (widget.isUpdateScreen ?? false) == false,
                 child: Row(
                   children: [
-                    // CachedNetworkImage(
-                    //   placeholder: (_, __) => const Icon(Icons.account_circle_outlined),
-                    //   imageUrl: AuthUtility.userInfo.data?.photo ?? '',
-                    //   errorWidget: (_, __, ___) => const Icon(Icons.account_circle_outlined),
-                    // ),
+                    CachedNetworkImage(
+                      placeholder: (_, __) => const Icon(Icons.account_circle_outlined),
+                      imageUrl: AuthUtility.userInfo.data?.photo ?? '',
+                      errorWidget: (_, __, ___) => const Icon(Icons.account_circle_outlined),
+                    ),
                   ],
                 ),
               ),

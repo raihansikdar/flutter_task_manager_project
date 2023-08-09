@@ -130,8 +130,7 @@ class _NewTaskScreenState extends State<NewTaskScreen> {
         });
   }
 
-  void showStatusUpdateBottomSheet(
-      {required String taskId, required String taskStatus}) {
+  void showStatusUpdateBottomSheet({required String taskId, required String taskStatus}) {
     showModalBottomSheet(
         isScrollControlled: true,
         context: context,
@@ -156,30 +155,7 @@ class _NewTaskScreenState extends State<NewTaskScreen> {
             getNewTasks();
             getCountSummary();
           },
-          child: Column(
-            children: [
-             const UserProfileBanner(isUpdateScreen: false),
-              _getCountSummaryInProgress
-                  ? const LinearProgressIndicator()
-                  : Padding(
-                      padding: const EdgeInsets.all(8.0),
-                      child: SizedBox(
-                        height: 80,
-                        width: double.infinity,
-                        child: ListView.builder(
-                            scrollDirection: Axis.horizontal,
-                            itemCount: _summaryCountModel.data?.length ?? 0,
-                            itemBuilder: (context, index) {
-                              return SummaryCard(
-                                number:
-                                    _summaryCountModel.data?[index].sum ?? 0,
-                                title: _summaryCountModel.data?[index].sId ??
-                                    "New",
-                              );
-                            }),
-                      )),
-              Expanded(
-                  child: _getNewTaskInProgress
+          child:  _getNewTaskInProgress
                       ? const Center(
                           child: SizedBox(
                             height: 320,
@@ -202,7 +178,29 @@ class _NewTaskScreenState extends State<NewTaskScreen> {
                             ),
                           ),
                         )
-                      : ListView.separated(
+                    : Column(
+            children: [
+             const UserProfileBanner(isUpdateScreen: false),
+              
+                   Padding(
+                      padding: const EdgeInsets.all(8.0),
+                      child: SizedBox(
+                        height: 80,
+                        width: double.infinity,
+                        child: ListView.builder(
+                            scrollDirection: Axis.horizontal,
+                            itemCount: _summaryCountModel.data?.length ?? 0,
+                            itemBuilder: (context, index) {
+                              return SummaryCard(
+                                number:
+                                    _summaryCountModel.data?[index].sum ?? 0,
+                                title: _summaryCountModel.data?[index].sId ??
+                                    "New",
+                              );
+                            }),
+                      )),
+              Expanded(
+                  child: ListView.separated(
                           itemCount: _taskListModel.data?.length ?? 0,
                           itemBuilder: (context, index) {
                             return TaskListTile(

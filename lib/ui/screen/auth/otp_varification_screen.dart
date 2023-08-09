@@ -1,11 +1,53 @@
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_task_manager_project/data/models/network_response.dart';
+import 'package:flutter_task_manager_project/data/service/network_caller.dart';
+import 'package:flutter_task_manager_project/data/utils/urls.dart';
 import 'package:flutter_task_manager_project/ui/screen/auth/login_screen.dart';
 import 'package:flutter_task_manager_project/ui/screen/auth/reset_password_screen.dart';
 import 'package:flutter_task_manager_project/ui/widgets/screen_background.dart';
 import 'package:pin_code_fields/pin_code_fields.dart';
 
-class OtpVarificationScreen extends StatelessWidget {
-  const OtpVarificationScreen({super.key});
+class OtpVarificationScreen extends StatefulWidget {
+  final String email;
+  const OtpVarificationScreen({super.key, required this.email});
+
+  @override
+  State<OtpVarificationScreen> createState() => _OtpVarificationScreenState();
+}
+
+class _OtpVarificationScreenState extends State<OtpVarificationScreen> {
+  final TextEditingController _optController = TextEditingController();
+  bool _isLoadaing = false;
+
+  Future<void> verifyOTP() async {
+    _isLoadaing = true;
+    if (mounted) {
+      setState(() {});
+    }
+    final NetworkResponse response = await NetworkCaller()
+        .getRequest(Urls.otpVerify(widget.email, _optController.text));
+
+    _isLoadaing = false;
+    if (mounted) {
+      setState(() {});
+    }
+
+    if (response.isSuccess) {
+      if (mounted) {
+        Navigator.push(
+            context,
+            MaterialPageRoute(
+                builder: (context) => ResetPasswordScreen(
+                    email: widget.email, otp: _optController.text)));
+      }
+    } else {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Otp verification has been failed!')));
+      }
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -37,6 +79,7 @@ class OtpVarificationScreen extends StatelessWidget {
               height: 16,
             ),
             PinCodeTextField(
+              controller: _optController,
               length: 6,
               obscureText: false,
               animationType: AnimationType.fade,
@@ -59,7 +102,7 @@ class OtpVarificationScreen extends StatelessWidget {
               onCompleted: (v) {},
               onChanged: (value) {},
               beforeTextPaste: (text) {
-            //    print("Allowing to paste $text");
+                //    print("Allowing to paste $text");
                 //if you return true then it will show the paste confirmation dialog. Otherwise if false, then nothing will happen.
                 //but you can show anything you want here, like your pop up saying wrong paste format or etc
                 return true;
@@ -71,9 +114,9 @@ class OtpVarificationScreen extends StatelessWidget {
             ),
             SizedBox(
               width: double.infinity,
-              child: ElevatedButton(
+              child: _isLoadaing ? const Center(child: CupertinoActivityIndicator(radius: 13,)) : ElevatedButton(
                 onPressed: () {
-                  Navigator.push(context, MaterialPageRoute(builder: (context)=>const ResetPasswordScreen()));
+                  verifyOTP();
                 },
                 child: const Text("Verify"),
               ),
