@@ -1,6 +1,13 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_task_manager_project/data/models/auth_utility.dart';
+import 'package:flutter_task_manager_project/data/models/network_response.dart';
+import 'package:flutter_task_manager_project/data/service/network_caller.dart';
+import 'package:flutter_task_manager_project/data/utils/urls.dart';
 import 'package:flutter_task_manager_project/ui/widgets/screen_background.dart';
 import 'package:flutter_task_manager_project/ui/widgets/user_profile_banner.dart';
+import 'package:image_picker/image_picker.dart';
+
+import '../../data/models/login_model.dart';
 
 class UpdateProfileScreen extends StatefulWidget {
   const UpdateProfileScreen({super.key});
@@ -10,6 +17,9 @@ class UpdateProfileScreen extends StatefulWidget {
 }
 
 class _UpdateProfileScreenState extends State<UpdateProfileScreen> {
+  UserData userData =
+      AuthUtility.userInfo.data!; // bar bar AuthUtility.userInfo.data likbona
+
   final TextEditingController _emailControlller = TextEditingController();
   final TextEditingController _firstNameControlller = TextEditingController();
   final TextEditingController _lastNameControlller = TextEditingController();
@@ -17,8 +27,63 @@ class _UpdateProfileScreenState extends State<UpdateProfileScreen> {
   final TextEditingController _passwordControlller = TextEditingController();
 
   final GlobalKey<FormState> _fromkey = GlobalKey<FormState>();
+  XFile? imageFile;
 
-  bool _signUpInProgress = false;
+  bool _isLoading = false;
+
+  @override
+  void initState() {
+    super.initState();
+
+    _emailControlller.text = userData.email ?? '';
+    _firstNameControlller.text = userData.firstName ?? '';
+    _lastNameControlller.text = userData.lastName ?? '';
+    _mobileControlller.text = userData.mobile ?? '';
+  }
+
+  Future<void> updateProfile() async {
+    _isLoading = true;
+    if (mounted) {
+      setState(() {});
+    }
+
+    Map<String, dynamic> requestBody = {
+      "firstName": _firstNameControlller.text.trim(),
+      "lastName": _lastNameControlller.text.trim(),
+      "mobile": _mobileControlller.text.trim(),
+      "photo": ""
+    };
+
+    if (_passwordControlller.text.isNotEmpty) {
+      requestBody['password'] = _passwordControlller.text;
+    }
+
+    final NetworkResponse response =
+        await NetworkCaller().postRequest(Urls.updateProfile, requestBody);
+
+    _isLoading = false;
+    if (mounted) {
+      setState(() {});
+    }
+
+    if (response.isSuccess) {
+      userData.firstName = _firstNameControlller.text.trim();
+      userData.lastName = _lastNameControlller.text.trim();
+      userData.mobile = _mobileControlller.text.trim();
+
+      AuthUtility.updateUserInfo(userData);
+      _passwordControlller.clear();
+      if (mounted) {
+        ScaffoldMessenger.of(context)
+            .showSnackBar(const SnackBar(content: Text('Profile updated!')));
+      }
+    } else {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Profile update failed! Try again.')));
+      }
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -45,26 +110,35 @@ class _UpdateProfileScreenState extends State<UpdateProfileScreen> {
                     const SizedBox(
                       height: 14,
                     ),
-                    Container(
-                      width: double.infinity,
-                      decoration: BoxDecoration(
-                          color: Colors.white,
-                          borderRadius: BorderRadius.circular(8.0)),
-                      child: Row(
-                        children: [
-                          Container(
-                            padding: const EdgeInsets.all(16.0),
-                            color: Colors.grey,
-                            child: const Text(
-                              "Photo",
-                              style: TextStyle(color: Colors.white),
+                    InkWell(
+                      onTap: () {
+                        pickImageFromGallery(); // call method
+                      },
+                      child: Container(
+                        width: double.infinity,
+                        decoration: BoxDecoration(
+                            color: Colors.white,
+                            borderRadius: BorderRadius.circular(8.0)),
+                        child: Row(
+                          children: [
+                            Container(
+                              padding: const EdgeInsets.all(16.0),
+                              color: Colors.grey,
+                              child: const Text(
+                                "Photo",
+                                style: TextStyle(color: Colors.white),
+                              ),
                             ),
-                          ),
-                          const SizedBox(
-                            height: 14,
-                          ),
-                          const Text(""),
-                        ],
+                            const SizedBox(
+                              width: 14,
+                            ),
+                            //Text(imageFile?.name ?? '')
+
+                            Visibility(
+                                visible: imageFile != null,
+                                child: Text(imageFile?.name ?? '')),
+                          ],
+                        ),
                       ),
                     ),
                     const SizedBox(
@@ -73,6 +147,7 @@ class _UpdateProfileScreenState extends State<UpdateProfileScreen> {
                     TextFormField(
                       controller: _emailControlller,
                       keyboardType: TextInputType.emailAddress,
+                      readOnly: true,
                       autofillHints: const [AutofillHints.email],
                       decoration: const InputDecoration(
                         hintText: 'Email',
@@ -141,12 +216,12 @@ class _UpdateProfileScreenState extends State<UpdateProfileScreen> {
                       decoration: const InputDecoration(
                         hintText: 'Password',
                       ),
-                      validator: (String? value) {
-                        if ((value?.isEmpty ?? true) || value!.length < 5) {
-                          return 'Enter a password more than 6 letters';
-                        }
-                        return null;
-                      },
+                      // validator: (String? value) {
+                      //   if ((value?.isEmpty ?? true) || value!.length < 5) {
+                      //     return 'Enter a password more than 6 letters';
+                      //   }
+                      //   return null;
+                      // },
                     ),
                     const SizedBox(
                       height: 16,
@@ -154,7 +229,7 @@ class _UpdateProfileScreenState extends State<UpdateProfileScreen> {
                     SizedBox(
                       width: double.infinity,
                       child: Visibility(
-                        visible: _signUpInProgress == false,
+                        visible: _isLoading == false,
                         replacement:
                             const Center(child: CircularProgressIndicator()),
                         child: ElevatedButton(
@@ -162,7 +237,7 @@ class _UpdateProfileScreenState extends State<UpdateProfileScreen> {
                               if (!_fromkey.currentState!.validate()) {
                                 return;
                               }
-                              //userSignUp();
+                              updateProfile();
                             },
                             child:
                                 const Icon(Icons.arrow_circle_right_outlined)),
@@ -177,5 +252,18 @@ class _UpdateProfileScreenState extends State<UpdateProfileScreen> {
         ),
       )),
     );
+  }
+
+  // Function to pick an image from the gallery
+  void pickImageFromGallery() {
+    final ImagePicker picker = ImagePicker();
+    picker.pickImage(source: ImageSource.gallery).then((xFile) {
+      if (xFile != null) {
+        imageFile = xFile;
+        if (mounted) {
+          setState(() {});
+        }
+      }
+    });
   }
 }

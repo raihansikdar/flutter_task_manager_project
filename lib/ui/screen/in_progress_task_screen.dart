@@ -2,7 +2,6 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_task_manager_project/data/models/network_response.dart';
 import 'package:flutter_task_manager_project/data/models/progress_model.dart';
-import 'package:flutter_task_manager_project/data/models/task_list_model.dart';
 import 'package:flutter_task_manager_project/data/service/network_caller.dart';
 import 'package:flutter_task_manager_project/data/utils/urls.dart';
 import 'package:flutter_task_manager_project/ui/screen/add_new_task_screen.dart';

@@ -35,8 +35,8 @@ class _LoginScreenState extends State<LoginScreen> {
       "password": _passwordController.text,
     };
 
-    final NetworkResponse response =
-        await NetworkCaller().postRequest(Urls.login, requestBody,isLogin: true);
+    final NetworkResponse response = await NetworkCaller()
+        .postRequest(Urls.login, requestBody, isLogin: true);
 
     _loginInProgress = false;
     if (mounted) {
@@ -46,20 +46,20 @@ class _LoginScreenState extends State<LoginScreen> {
     if (response.isSuccess) {
       LoginModel model = LoginModel.fromJson(response.body!);
       await AuthUtility.saveUserInfo(model);
-      
+
       if (mounted) {
         Navigator.pushAndRemoveUntil(
             context,
             MaterialPageRoute(
                 builder: (context) => const BottomNavBaseScreen()),
             (route) => false);
+      }
       } else {
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
               const SnackBar(content: Text('Incorrect email or password')));
         }
       }
-    }
   }
 
   bool showEmailClearIcon = false;

@@ -12,17 +12,21 @@ class NetworkCaller {
   ///----------------------------------Get Method---------------------------------------
   Future<NetworkResponse> getRequest(String url) async {
     try {
-      Response response = await get(Uri.parse(url),headers: {'token':AuthUtility.userInfo.token.toString()});
-      
+      Response response = await get(Uri.parse(url),headers: {'token': AuthUtility.userInfo.token.toString()});
+
       log(response.statusCode.toString());
       log(response.body);
 
       if (response.statusCode == 200) {
-        return NetworkResponse(isSuccess: true,statusCode: response.statusCode,body: jsonDecode(response.body));
-      }else if (response.statusCode == 401) {
+        return NetworkResponse(
+            isSuccess: true,
+            statusCode: response.statusCode,
+            body: jsonDecode(response.body));
+      } else if (response.statusCode == 401) {
         gotoLogin();
       } else {
-        return NetworkResponse(isSuccess: false, statusCode: response.statusCode, body: null);
+        return NetworkResponse(
+            isSuccess: false, statusCode: response.statusCode, body: null);
       }
     } catch (e) {
       log(e.toString());
@@ -32,21 +36,33 @@ class NetworkCaller {
   }
 
   ///----------------------------------Post Method---------------------------------------
-  Future<NetworkResponse> postRequest(String url, Map<String, dynamic> body,{bool isLogin = false}) async {
+  Future<NetworkResponse> postRequest(String url, Map<String, dynamic> body,
+      {bool isLogin = false}) async {
     try {
-      Response response = await post(Uri.parse(url),headers: {'Content-type': 'application/json','token':AuthUtility.userInfo.token.toString()},body: jsonEncode(body));
+      Response response = await post(Uri.parse(url),
+          headers: {
+            'Content-type': 'application/json',
+            'token': AuthUtility.userInfo.token.toString()
+          },
+          body: jsonEncode(body));
       
+      log(body.toString());
+
       log(response.statusCode.toString());
       log(response.body);
 
       if (response.statusCode == 200) {
-        return NetworkResponse(isSuccess: true,statusCode: response.statusCode,body: jsonDecode(response.body));
+        return NetworkResponse(
+            isSuccess: true,
+            statusCode: response.statusCode,
+            body: jsonDecode(response.body));
       } else if (response.statusCode == 401) {
-        if(isLogin== false){
+        if (isLogin == false) {
           gotoLogin();
         }
       } else {
-        return NetworkResponse(isSuccess: false, statusCode: response.statusCode, body: null);
+        return NetworkResponse(
+            isSuccess: false, statusCode: response.statusCode, body: null);
       }
     } catch (e) {
       log(e.toString());
@@ -54,10 +70,12 @@ class NetworkCaller {
     }
     return NetworkResponse(isSuccess: false, statusCode: -1, body: null);
   }
-   Future<void> gotoLogin() async {
+
+  Future<void> gotoLogin() async {
     await AuthUtility.clearUserInfo();
     Navigator.pushAndRemoveUntil(
-         TaskManagerApp.globalKey.currentContext!, // TaskManagerApp.globalKey.currentState!.context,
+        TaskManagerApp.globalKey
+            .currentContext!, // TaskManagerApp.globalKey.currentState!.context,
         MaterialPageRoute(builder: (context) => const LoginScreen()),
         (route) => false);
   }
