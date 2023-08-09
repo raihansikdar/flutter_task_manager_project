@@ -108,7 +108,7 @@ class _InProgressScreenState extends State<InProgressScreen> {
             const UserProfileBanner(isUpdateScreen: false),
             Expanded(
                 child: _getProgressTasksInProgress
-                    ? const Center(child: CupertinoActivityIndicator())
+                    ? const Center(child: CupertinoActivityIndicator(radius: 20,))
                     :_progressModel.data != null && _progressModel.data!.isEmpty
                     ? const Center(child: Text('No data found'))
                     : Padding(
@@ -145,15 +145,7 @@ class _InProgressScreenState extends State<InProgressScreen> {
           ],
         ),
       ),
-      floatingActionButton: FloatingActionButton(
-        child: const Icon(Icons.add),
-        onPressed: () {
-          Navigator.push(
-              context,
-              MaterialPageRoute(
-                  builder: (context) => const AddNewTaskScreen()));
-        },
-      ),
+      
     );
   }
 }

@@ -102,7 +102,7 @@ class _CancellTaskScreenState extends State<CancellTaskScreen> {
           Expanded(
               child: isCancelTask
                   ? const Center(child: CupertinoActivityIndicator(radius: 20,))
-                  : _cancelTaskModel.data == null || _cancelTaskModel.data!.isEmpty
+                  : _cancelTaskModel.data != null && _cancelTaskModel.data!.isEmpty
                       ? const Center(child: Text('No data found'))
                       : Padding(
                         padding: const EdgeInsets.only(top:16.0),

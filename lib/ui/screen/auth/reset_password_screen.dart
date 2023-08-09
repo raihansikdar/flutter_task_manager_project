@@ -155,7 +155,7 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen> {
                                     builder: (context) => const LoginScreen()),
                                 (route) => false);
                           },
-                          child: const Text('Sign in')),
+                          child: const Text('Log in')),
                     ],
                   )
                 ],
