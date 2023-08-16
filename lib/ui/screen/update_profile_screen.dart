@@ -240,4 +240,25 @@ class _UpdateProfileScreenState extends State<UpdateProfileScreen> {
       }
     });
   }
+
+
+  // File? image;
+  // String? base64String;
+  // Future pickImage(ImageSource imageSource) async {
+  //   try {
+  //     final pickedImage = await ImagePicker().pickImage(source: imageSource, imageQuality: 30);
+  //     if (pickedImage == null) return;
+  //
+  //     image = File(pickedImage.path);
+  //
+  //     base64String = await Base64Image.base64EncodedString(image);
+  //
+  //     setState(() {});
+  //   } on PlatformException catch(e) {
+  //     ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+  //       content: Text('Error: $e'),
+  //       backgroundColor: Colors.red,
+  //     ));
+  //   }
+  // }
 }
