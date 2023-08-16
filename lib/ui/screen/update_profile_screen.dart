@@ -2,9 +2,12 @@ import 'package:flutter/material.dart';
 import 'package:flutter_task_manager_project/data/models/auth_utility.dart';
 import 'package:flutter_task_manager_project/data/models/network_response.dart';
 import 'package:flutter_task_manager_project/data/service/network_caller.dart';
+import 'package:flutter_task_manager_project/data/state_manager/update_profile_controller.dart';
 import 'package:flutter_task_manager_project/data/utils/urls.dart';
+import 'package:flutter_task_manager_project/ui/screen/auth/login_screen.dart';
 import 'package:flutter_task_manager_project/ui/widgets/screen_background.dart';
 import 'package:flutter_task_manager_project/ui/widgets/user_profile_banner.dart';
+import 'package:get/get.dart';
 import 'package:image_picker/image_picker.dart';
 
 import '../../data/models/login_model.dart';
@@ -17,8 +20,7 @@ class UpdateProfileScreen extends StatefulWidget {
 }
 
 class _UpdateProfileScreenState extends State<UpdateProfileScreen> {
-  UserData userData =
-      AuthUtility.userInfo.data!; // bar bar AuthUtility.userInfo.data likbona
+  UserData userData = AuthUtility.userInfo.data!; // bar bar AuthUtility.userInfo.data likbona
 
   final TextEditingController _emailControlller = TextEditingController();
   final TextEditingController _firstNameControlller = TextEditingController();
@@ -28,8 +30,8 @@ class _UpdateProfileScreenState extends State<UpdateProfileScreen> {
 
   final GlobalKey<FormState> _fromkey = GlobalKey<FormState>();
   XFile? imageFile;
+  final UpdateProfileController _updateProfileController = Get.find<UpdateProfileController>();
 
-  bool _isLoading = false;
 
   @override
   void initState() {
@@ -39,51 +41,9 @@ class _UpdateProfileScreenState extends State<UpdateProfileScreen> {
     _firstNameControlller.text = userData.firstName ?? '';
     _lastNameControlller.text = userData.lastName ?? '';
     _mobileControlller.text = userData.mobile ?? '';
+
   }
 
-  Future<void> updateProfile() async {
-    _isLoading = true;
-    if (mounted) {
-      setState(() {});
-    }
-
-    Map<String, dynamic> requestBody = {
-      "firstName": _firstNameControlller.text.trim(),
-      "lastName": _lastNameControlller.text.trim(),
-      "mobile": _mobileControlller.text.trim(),
-      "photo": ""
-    };
-
-    if (_passwordControlller.text.isNotEmpty) {
-      requestBody['password'] = _passwordControlller.text;
-    }
-
-    final NetworkResponse response =
-        await NetworkCaller().postRequest(Urls.updateProfile, requestBody);
-
-    _isLoading = false;
-    if (mounted) {
-      setState(() {});
-    }
-
-    if (response.isSuccess) {
-      userData.firstName = _firstNameControlller.text.trim();
-      userData.lastName = _lastNameControlller.text.trim();
-      userData.mobile = _mobileControlller.text.trim();
-
-      AuthUtility.updateUserInfo(userData);
-      _passwordControlller.clear();
-      if (mounted) {
-        ScaffoldMessenger.of(context)
-            .showSnackBar(const SnackBar(content: Text('Profile updated!')));
-      }
-    } else {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Profile update failed! Try again.')));
-      }
-    }
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -229,7 +189,7 @@ class _UpdateProfileScreenState extends State<UpdateProfileScreen> {
                     SizedBox(
                       width: double.infinity,
                       child: Visibility(
-                        visible: _isLoading == false,
+                        visible: _updateProfileController.isLoading == false,
                         replacement:
                             const Center(child: CircularProgressIndicator()),
                         child: ElevatedButton(
@@ -237,7 +197,21 @@ class _UpdateProfileScreenState extends State<UpdateProfileScreen> {
                               if (!_fromkey.currentState!.validate()) {
                                 return;
                               }
-                              updateProfile();
+                              _updateProfileController.updateProfile(
+                                  firstName:  _firstNameControlller.text.trim(),
+                                  lastName:  _lastNameControlller.text.trim(),
+                                  mobile: _mobileControlller.text.trim(),
+                                  password: _passwordControlller.text,
+
+                              ).then((value) {
+                                if(value == true){
+                                  _passwordControlller.clear();
+                                  Get.snackbar("Success", "Profile updated!Now loging to see update!!");
+                                  Get.offAll(()=>const LoginScreen(),transition: Transition.rightToLeft);
+                                }else{
+                                  Get.snackbar("Failed", "Profile update failed! Try again.");
+                                }
+                              });
                             },
                             child:
                                 const Icon(Icons.arrow_circle_right_outlined)),

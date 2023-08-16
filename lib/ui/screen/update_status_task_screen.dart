@@ -2,6 +2,8 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_task_manager_project/data/models/network_response.dart';
 import 'package:flutter_task_manager_project/data/service/network_caller.dart';
+import 'package:flutter_task_manager_project/data/state_manager/status_task_controller.dart';
+import 'package:get/get.dart';
 
 import '../../data/utils/urls.dart';
 
@@ -19,39 +21,41 @@ class UpdateStatusTaskScreen extends StatefulWidget {
 }
 
 class _UpdateStatusTaskScreenState extends State<UpdateStatusTaskScreen> {
+
+  final StatusTaskController _statusTaskController = Get.find<StatusTaskController>();
+
   List<String> taskStatusList = ['New', 'Progress', 'Cancel', 'Completed'];
 
   late String _selectedTask;
-  bool updateTaskProgress = false;
+
   @override
   void initState() {
     _selectedTask = widget.taskStatus.toLowerCase();
     super.initState();
   }
 
-  Future<void> updateTask(String taskId, String newStatus) async {
-    updateTaskProgress = true;
-    if (mounted) {
-      setState(() {});
-    }
-    final NetworkResponse response =
-        await NetworkCaller().getRequest(Urls.updateTasks(taskId, newStatus));
-    updateTaskProgress = false;
-    if (mounted) {
-      setState(() {});
-    }
-    if (response.isSuccess) {
-      widget.onUpdate();
-      if (mounted) {
-        Navigator.pop(context);
-      }
-    } else {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Update of task has been failed')));
-      }
-    }
-  }
+  // Future<void> updateTask({required String taskId,required String newStatus}) async {
+  //   updateTaskProgress = true;
+  //   if (mounted) {
+  //     setState(() {});
+  //   }
+  //   final NetworkResponse response = await NetworkCaller().getRequest(Urls.updateTasks(taskId, newStatus));
+  //   updateTaskProgress = false;
+  //   if (mounted) {
+  //     setState(() {});
+  //   }
+  //   if (response.isSuccess) {
+  //     widget.onUpdate();
+  //     if (mounted) {
+  //       Navigator.pop(context);
+  //     }
+  //   } else {
+  //     if (mounted) {
+  //       ScaffoldMessenger.of(context).showSnackBar(
+  //           const SnackBar(content: Text('Update of task has been failed')));
+  //     }
+  //   }
+  // }
 
   @override
   Widget build(BuildContext context) {
@@ -83,13 +87,18 @@ class _UpdateStatusTaskScreenState extends State<UpdateStatusTaskScreen> {
           ),
           Padding(
             padding: const EdgeInsets.all(16.0),
-            child: updateTaskProgress
-                ? const Center(child: CupertinoActivityIndicator())
-                : ElevatedButton(
-                    onPressed: () {
-                      updateTask(widget.taskId, _selectedTask);
-                    },
-                    child: const Text("Update")),
+            child: GetBuilder<StatusTaskController>(
+              builder: (_) {
+                return _statusTaskController.updateTaskProgress
+                    ? const Center(child: CupertinoActivityIndicator())
+                    : ElevatedButton(
+                        onPressed: () {
+                          _statusTaskController.updateTask(taskId: widget.taskId, newStatus: _selectedTask, onUpdate: widget.onUpdate,);
+                          //updateTask(widget.taskId, _selectedTask);
+                        },
+                        child: const Text("Update"));
+              }
+            ),
           )
         ],
       ),

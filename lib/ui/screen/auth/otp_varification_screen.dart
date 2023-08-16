@@ -2,10 +2,12 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_task_manager_project/data/models/network_response.dart';
 import 'package:flutter_task_manager_project/data/service/network_caller.dart';
+import 'package:flutter_task_manager_project/data/state_manager/otp_varification_controller.dart';
 import 'package:flutter_task_manager_project/data/utils/urls.dart';
 import 'package:flutter_task_manager_project/ui/screen/auth/login_screen.dart';
 import 'package:flutter_task_manager_project/ui/screen/auth/reset_password_screen.dart';
 import 'package:flutter_task_manager_project/ui/widgets/screen_background.dart';
+import 'package:get/get.dart';
 import 'package:pin_code_fields/pin_code_fields.dart';
 
 class OtpVarificationScreen extends StatefulWidget {
@@ -18,36 +20,8 @@ class OtpVarificationScreen extends StatefulWidget {
 
 class _OtpVarificationScreenState extends State<OtpVarificationScreen> {
   final TextEditingController _optController = TextEditingController();
-  bool _isLoadaing = false;
 
-  Future<void> verifyOTP() async {
-    _isLoadaing = true;
-    if (mounted) {
-      setState(() {});
-    }
-    final NetworkResponse response = await NetworkCaller()
-        .getRequest(Urls.otpVerify(widget.email, _optController.text));
-
-    _isLoadaing = false;
-    if (mounted) {
-      setState(() {});
-    }
-
-    if (response.isSuccess) {
-      if (mounted) {
-        Navigator.push(
-            context,
-            MaterialPageRoute(
-                builder: (context) => ResetPasswordScreen(
-                    email: widget.email, otp: _optController.text)));
-      }
-    } else {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Otp verification has been failed!')));
-      }
-    }
-  }
+  final OtpVarificationController _otpVarificationController = Get.find<OtpVarificationController>();
 
   @override
   Widget build(BuildContext context) {
@@ -112,14 +86,27 @@ class _OtpVarificationScreenState extends State<OtpVarificationScreen> {
             const SizedBox(
               height: 16,
             ),
-            SizedBox(
-              width: double.infinity,
-              child: _isLoadaing ? const Center(child: CupertinoActivityIndicator(radius: 13,)) : ElevatedButton(
-                onPressed: () {
-                  verifyOTP();
-                },
-                child: const Text("Verify"),
-              ),
+            GetBuilder<OtpVarificationController>(
+              builder: (_) {
+                return SizedBox(
+                  width: double.infinity,
+                  child: _otpVarificationController.isLoading ? const Center(child: CupertinoActivityIndicator(radius: 13,)) : ElevatedButton(
+                    onPressed: () {
+                      _otpVarificationController.verifyOTP(
+                          email: widget.email,
+                          otpText: _optController.text).then((value) {
+                            if(value == true){
+                              Get.snackbar("Success", " ");
+                              Get.to(()=> ResetPasswordScreen(email: widget.email,otp: _optController.text));
+                            }else{
+                              Get.snackbar("Faild", "Otp verification has been failed");
+                            }
+                      });
+                    },
+                    child: const Text("Verify"),
+                  ),
+                );
+              }
             ),
             const SizedBox(
               height: 16,

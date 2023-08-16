@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_task_manager_project/data/models/network_response.dart';
 import 'package:flutter_task_manager_project/data/service/network_caller.dart';
+import 'package:flutter_task_manager_project/data/state_manager/signup_controller.dart';
 import 'package:flutter_task_manager_project/data/utils/urls.dart';
 import 'package:flutter_task_manager_project/ui/widgets/screen_background.dart';
+import 'package:get/get.dart';
 
 class SignUpScreen extends StatefulWidget {
   const SignUpScreen({super.key});
@@ -20,49 +22,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
 
   final GlobalKey<FormState> _fromkey = GlobalKey<FormState>();
 
-  bool _signUpInProgress = false;
-
-  Future<void> userSignUp() async {
-    _signUpInProgress = true;
-    if (mounted) {
-      setState(() {});
-    }
-
-    Map<String, dynamic> requestBody = <String, dynamic>{
-      "email": _emailControlller.text.trim(),
-      "firstName": _firstNameControlller.text.trim(),
-      "lastName": _lastNameControlller.text.trim(),
-      "mobile": _mobileControlller.text.trim(),
-      "password": _passwordControlller.text,
-      "photo": ""
-    };
-
-    final NetworkResponse response =
-        await NetworkCaller().postRequest(Urls.registration, requestBody);
-
-    _signUpInProgress = false;
-    if (mounted) {
-      setState(() {});
-    }
-
-    if (response.isSuccess) {
-      _emailControlller.clear();
-      _firstNameControlller.clear();
-      _lastNameControlller.clear();
-      _mobileControlller.clear();
-      _passwordControlller.clear();
-
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Registration success!')));
-      }
-    } else {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Registration failed!')));
-      }
-    }
-  }
+  final SignUpController _SignUpController = Get.find<SignUpController>();
 
   bool showClearIcon = false;
 
@@ -187,22 +147,43 @@ class _SignUpScreenState extends State<SignUpScreen> {
                 const SizedBox(
                   height: 16,
                 ),
-                SizedBox(
-                  width: double.infinity,
-                  child: Visibility(
-                    visible: _signUpInProgress == false,
-                    replacement:
-                        const Center(child: CircularProgressIndicator()),
-                    child: ElevatedButton(
-                        onPressed: () {
-                          if (!_fromkey.currentState!.validate()) {
-                            return;
-                          }
-                          userSignUp();
-                        },
-                        child: const Icon(Icons.arrow_circle_right_outlined)),
-                    // child: _signUpInProgress ? const Center(child: CupertinoActivityIndicator(color: Colors.white,radius: 13.0,),) : const Icon(Icons.arrow_circle_right_outlined)),
-                  ),
+                GetBuilder<SignUpController>(
+                  builder: (_) {
+                    return SizedBox(
+                      width: double.infinity,
+                      child: Visibility(
+                        visible: _SignUpController.signUpInProgress == false,
+                        replacement:
+                            const Center(child: CircularProgressIndicator()),
+                        child: ElevatedButton(
+                            onPressed: () {
+                              if (!_fromkey.currentState!.validate()) {
+                                return;
+                              }
+                              _SignUpController.userSignUp(
+                                  email: _emailControlller.text.trim(),
+                                  firstName: _firstNameControlller.text.trim(),
+                                  lastName: _lastNameControlller.text.trim(),
+                                  mobile:_mobileControlller.text,
+                                  password:_passwordControlller.text,
+                                  photo: "").then((value) {
+                                    if(value == true){
+                                      _emailControlller.clear();
+                                      _firstNameControlller.clear();
+                                      _lastNameControlller.clear();
+                                      _mobileControlller.clear();
+                                      _passwordControlller.clear();
+                                      Get.snackbar("Success", "Registration success!");
+                                    }else{
+                                      Get.snackbar("Failed", "Registration failed!");
+                                    }
+                              });
+                            },
+                            child: const Icon(Icons.arrow_circle_right_outlined)),
+                        // child: _signUpInProgress ? const Center(child: CupertinoActivityIndicator(color: Colors.white,radius: 13.0,),) : const Icon(Icons.arrow_circle_right_outlined)),
+                      ),
+                    );
+                  }
                 ),
                 const SizedBox(
                   height: 16,

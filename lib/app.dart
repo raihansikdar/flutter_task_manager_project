@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_task_manager_project/data/state_manager/controller_binding.dart';
 import 'package:flutter_task_manager_project/ui/screen/splash_screen.dart';
+import 'package:get/get.dart';
 
 class TaskManagerApp extends StatefulWidget {
  
@@ -15,11 +17,12 @@ class TaskManagerApp extends StatefulWidget {
 class _TaskManagerAppState extends State<TaskManagerApp> {
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
+    return GetMaterialApp(
        //key: TaskManagerApp.globalKey,
        navigatorKey: TaskManagerApp.globalKey,
       debugShowCheckedModeBanner: false,
       title: "Task Manager",
+      initialBinding: ControllerBinding(),
 
       //-------------------------------light theme------------------
       theme: ThemeData(

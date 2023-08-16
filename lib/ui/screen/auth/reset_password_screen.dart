@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_task_manager_project/data/models/network_response.dart';
 import 'package:flutter_task_manager_project/data/service/network_caller.dart';
+import 'package:flutter_task_manager_project/data/state_manager/reset_password_controller.dart';
 import 'package:flutter_task_manager_project/data/utils/urls.dart';
 import 'package:flutter_task_manager_project/ui/screen/auth/login_screen.dart';
 import 'package:flutter_task_manager_project/ui/widgets/screen_background.dart';
+import 'package:get/get.dart';
 
 class ResetPasswordScreen extends StatefulWidget {
   final String email, otp;
@@ -16,45 +18,9 @@ class ResetPasswordScreen extends StatefulWidget {
 
 class _ResetPasswordScreenState extends State<ResetPasswordScreen> {
   final TextEditingController _passwordController = TextEditingController();
-  final TextEditingController _confirmPasswordController =
-      TextEditingController();
+  final TextEditingController _confirmPasswordController = TextEditingController();
 
-  bool _isLoading = false;
-
-  Future<void> resetPassword() async {
-    _isLoading = true;
-    if (mounted) {
-      setState(() {});
-    }
-
-    Map<String, dynamic> requestBody = {
-      "email": widget.email,
-      "OTP": widget.otp,
-      "password": _passwordController.text,
-    };
-    final NetworkResponse response =
-        await NetworkCaller().postRequest(Urls.resetPassword, requestBody);
-    _isLoading = false;
-    if (mounted) {
-      setState(() {});
-    }
-    if (response.isSuccess) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Password reset successful!')));
-
-        Navigator.pushAndRemoveUntil(
-            context,
-            MaterialPageRoute(builder: (context) => const LoginScreen()),
-            (route) => false);
-      }
-    } else {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Reset password has been failed!')));
-      }
-    }
-  }
+  final ResetPasswordController _resetPasswordController = Get.find<ResetPasswordController>();
 
   final GlobalKey<FormState> _fromKey = GlobalKey<FormState>();
 
@@ -124,17 +90,32 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen> {
                   const SizedBox(
                     height: 16,
                   ),
-                  SizedBox(
-                    width: double.infinity,
-                    child: ElevatedButton(
-                      onPressed: () {
-                        if (!_fromKey.currentState!.validate()) {
-                          return;
-                        }
-                        resetPassword();
-                      },
-                      child: const Text('Confirm'),
-                    ),
+                  GetBuilder<ResetPasswordController>(
+
+                    builder: (_) {
+                      return SizedBox(
+                        width: double.infinity,
+                        child: ElevatedButton(
+                          onPressed: () {
+                            if (!_fromKey.currentState!.validate()) {
+                              return;
+                            }
+                            _resetPasswordController.resetPassword(
+                                email: widget.email,
+                                otpText: widget.otp,
+                                password: _passwordController.text).then((value) {
+                                 if(value == true){
+                                   Get.offAll(const LoginScreen());
+                                   Get.snackbar("Success", "Password reset successful!");
+                                 }else{
+                                   Get.snackbar("Failed", "Reset password has been failed!!");
+                                 }
+                            });
+                          },
+                          child: const Text('Confirm'),
+                        ),
+                      );
+                    }
                   ),
                   const SizedBox(
                     height: 16,

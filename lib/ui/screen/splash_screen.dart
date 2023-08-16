@@ -5,6 +5,7 @@ import 'package:flutter_task_manager_project/ui/screen/auth/login_screen.dart';
 import 'package:flutter_task_manager_project/ui/screen/bottom_nav_base_screen.dart';
 import 'package:flutter_task_manager_project/ui/utils/assets_utils.dart';
 import 'package:flutter_task_manager_project/ui/widgets/screen_background.dart';
+import 'package:get/get.dart';
 
 class SplashScreen extends StatefulWidget {
   const SplashScreen({Key? key}) : super(key: key);
@@ -29,14 +30,19 @@ class _SplashScreenState extends State<SplashScreen> {
 
     await Future.delayed(const Duration(seconds: 3));
     final bool isLoggedIn = await AuthUtility.checkedUserLoggedin();
-    if (mounted) {
-      Navigator.pushAndRemoveUntil(
-          context,
-          MaterialPageRoute(
-            builder: (context) =>isLoggedIn ? const BottomNavBaseScreen(): const LoginScreen(),
-          ),
-          (route) => false);
+
+    if(mounted){
+      Get.offAll(() => isLoggedIn ? const BottomNavBaseScreen() : const LoginScreen());
     }
+
+    // if (mounted) {
+    //   Navigator.pushAndRemoveUntil(
+    //       context,
+    //       MaterialPageRoute(
+    //         builder: (context) =>isLoggedIn ? const BottomNavBaseScreen(): const LoginScreen(),
+    //       ),
+    //       (route) => false);
+    // }
   }
 
   @override

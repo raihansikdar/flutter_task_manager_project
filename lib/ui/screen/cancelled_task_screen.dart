@@ -3,11 +3,13 @@ import 'package:flutter/material.dart';
 import 'package:flutter_task_manager_project/data/models/cancel_task_model.dart';
 import 'package:flutter_task_manager_project/data/models/network_response.dart';
 import 'package:flutter_task_manager_project/data/service/network_caller.dart';
+import 'package:flutter_task_manager_project/data/state_manager/cancel_task_controller.dart';
 import 'package:flutter_task_manager_project/data/utils/urls.dart';
 import 'package:flutter_task_manager_project/ui/screen/update_status_task_screen.dart';
 import 'package:flutter_task_manager_project/ui/widgets/screen_background.dart';
 import 'package:flutter_task_manager_project/ui/widgets/task_list_tile.dart';
 import 'package:flutter_task_manager_project/ui/widgets/user_profile_banner.dart';
+import 'package:get/get.dart';
 
 class CancellTaskScreen extends StatefulWidget {
   const CancellTaskScreen({super.key});
@@ -17,65 +19,36 @@ class CancellTaskScreen extends StatefulWidget {
 }
 
 class _CancellTaskScreenState extends State<CancellTaskScreen> {
-  CancelTaskModel _cancelTaskModel = CancelTaskModel();
+  final CancelTaskController _cancelTaskController = Get.find<CancelTaskController>();
   @override
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((timeStamp) {
-      getCancelTask();
+      _cancelTaskController.getCancelTask();
     });
   }
 
-  bool isCancelTask = false;
 
-  Future<void> getCancelTask() async {
-    isCancelTask = true;
-    if (mounted) {
-      setState(() {});
-    }
-    final NetworkResponse response =
-        await NetworkCaller().getRequest(Urls.cancelledTasks);
 
-    if (response.isSuccess) {
-      _cancelTaskModel = CancelTaskModel.fromJson(response.body!);
-    } else {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Cancelled data get failed')));
-      }
-    }
 
-    isCancelTask = false;
 
-    if (_cancelTaskModel.data == null || _cancelTaskModel.data!.isEmpty) {
-      if (mounted) {
-        ScaffoldMessenger.of(context)
-            .showSnackBar(const SnackBar(content: Text('No data found')));
-      }
-    }
-
-    if (mounted) {
-      setState(() {});
-    }
-  }
-
-  Future<void> deleteTask(String taskId) async {
-    final NetworkResponse response =
-        await NetworkCaller().getRequest(Urls.deleteTasks(taskId));
-
-    if (response.isSuccess) {
-      _cancelTaskModel.data!.removeWhere((element) => element.sId == taskId);
-      if (mounted) {
-        setState(() {});
-      }
-      //  getNewTasks(); /// api call kore delete but eita valo method na
-    } else {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Deletion of task has been failed')));
-      }
-    }
-  }
+  // Future<void> deleteTask(String taskId) async {
+  //   final NetworkResponse response =
+  //       await NetworkCaller().getRequest(Urls.deleteTasks(taskId));
+  //
+  //   if (response.isSuccess) {
+  //     _cancelTaskController.cancelTaskModel.data!.removeWhere((element) => element.sId == taskId);
+  //     if (mounted) {
+  //       setState(() {});
+  //     }
+  //     //  getNewTasks(); /// api call kore delete but eita valo method na
+  //   } else {
+  //     if (mounted) {
+  //       ScaffoldMessenger.of(context).showSnackBar(
+  //           const SnackBar(content: Text('Deletion of task has been failed')));
+  //     }
+  //   }
+  // }
 
   void showStatusUpdateBottomSheet(
       {required String taskId, required String taskStatus}) {
@@ -87,7 +60,7 @@ class _CancellTaskScreenState extends State<CancellTaskScreen> {
               taskId: taskId,
               taskStatus: taskStatus,
               onUpdate: () {
-                getCancelTask();
+                _cancelTaskController.getCancelTask();
               });
         });
   }
@@ -100,44 +73,43 @@ class _CancellTaskScreenState extends State<CancellTaskScreen> {
                 children: [
           const UserProfileBanner(isUpdateScreen: false),
           Expanded(
-              child: isCancelTask
-                  ? const Center(child: CupertinoActivityIndicator(radius: 20,))
-                  : _cancelTaskModel.data != null && _cancelTaskModel.data!.isEmpty
-                      ? const Center(child: Text('No data found'))
-                      : Padding(
-                        padding: const EdgeInsets.only(top:16.0),
-                        child: ListView.separated(
-                            itemCount: _cancelTaskModel.data?.length ?? 0,
-                            itemBuilder: (context, index) {
-                              return TaskListTile(
-                                title: _cancelTaskModel.data?[index].title ??
-                                    'Unknown',
-                                description:
-                                    _cancelTaskModel.data?[index].description ??
-                                        '',
-                                date: _cancelTaskModel.data?[index].createdDate ??
-                                    '',
-                                chipText:
-                                    _cancelTaskModel.data?[index].status ?? '',
-                                color: Colors.red,
-                                onDeleteTab: () {
-                                  deleteTask(_cancelTaskModel.data![index].sId!);
-                                },
-                                onEditTab: () {
-                                  showStatusUpdateBottomSheet(
-                                    taskId: _cancelTaskModel.data![index].sId!,
-                                    taskStatus:_cancelTaskModel.data![index].status!,
+              child: GetBuilder<CancelTaskController>(
+                builder: (_) {
+                  return _cancelTaskController.isCancelTaskInProgress
+                      ? const Center(child: CupertinoActivityIndicator(radius: 20,))
+                      : _cancelTaskController.cancelTaskModel.data != null && _cancelTaskController.cancelTaskModel.data!.isEmpty
+                          ? const Center(child: Text('No data found'))
+                          : Padding(
+                            padding: const EdgeInsets.only(top:16.0),
+                            child: ListView.separated(
+                                itemCount: _cancelTaskController.cancelTaskModel.data?.length ?? 0,
+                                itemBuilder: (context, index) {
+                                  return TaskListTile(
+                                    title: _cancelTaskController.cancelTaskModel.data?[index].title ?? 'Unknown',
+                                    description: _cancelTaskController.cancelTaskModel.data?[index].description ?? '',
+                                    date: _cancelTaskController.cancelTaskModel.data?[index].createdDate ?? '',
+                                    chipText: _cancelTaskController.cancelTaskModel.data?[index].status ?? '',
+                                    color: Colors.red,
+                                    onDeleteTab: () {
+                                      _cancelTaskController.deleteTask(_cancelTaskController.cancelTaskModel.data![index].sId!);
+                                    },
+                                    onEditTab: () {
+                                      showStatusUpdateBottomSheet(
+                                        taskId: _cancelTaskController.cancelTaskModel.data![index].sId!,
+                                        taskStatus:_cancelTaskController.cancelTaskModel.data![index].status!,
+                                      );
+                                    },
                                   );
                                 },
-                              );
-                            },
-                            separatorBuilder: (context, index) => Divider(
-                              height: 10,
-                              thickness: 4,
-                              color: Colors.grey.shade200,
-                            ),
-                          ),
-                      ))
+                                separatorBuilder: (context, index) => Divider(
+                                  height: 10,
+                                  thickness: 4,
+                                  color: Colors.grey.shade200,
+                                ),
+                              ),
+                          );
+                }
+              ))
                 ],
               )),
     );

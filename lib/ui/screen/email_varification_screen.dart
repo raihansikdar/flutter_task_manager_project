@@ -2,9 +2,11 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_task_manager_project/data/models/network_response.dart';
 import 'package:flutter_task_manager_project/data/service/network_caller.dart';
+import 'package:flutter_task_manager_project/data/state_manager/email_varification_controller.dart';
 import 'package:flutter_task_manager_project/data/utils/urls.dart';
 import 'package:flutter_task_manager_project/ui/screen/auth/otp_varification_screen.dart';
 import 'package:flutter_task_manager_project/ui/widgets/screen_background.dart';
+import 'package:get/get.dart';
 
 class EmailVarificationScreen extends StatefulWidget {
   const EmailVarificationScreen({super.key});
@@ -19,39 +21,8 @@ class _EmailVarificationScreenState extends State<EmailVarificationScreen> {
   
   final TextEditingController _emailController = TextEditingController();
 
-  bool _isLoading = false;
+  final EmailVarificationController _emailVarificationController = Get.find<EmailVarificationController>();
   final GlobalKey<FormState> _fromKey = GlobalKey<FormState>();
-
-
-  Future<void> sendOTPToEmail() async {
-    _isLoading = true;
-    if (mounted) {
-      setState(() {});
-    }
-
-    final NetworkResponse response = await NetworkCaller()
-        .getRequest(Urls.sendOtpToEmail(_emailController.text.trim()));
-
-    _isLoading = false;
-    if (mounted) {
-      setState(() {});
-    }
-
-    if (response.isSuccess) {
-      if (mounted) {
-        Navigator.push(
-            context,
-            MaterialPageRoute(
-                builder: (context) => OtpVarificationScreen(
-                    email: _emailController.text.trim())));
-      }
-    } else {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
-            content: Text('Email verification has been failed!')));
-      }
-    }
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -62,7 +33,6 @@ class _EmailVarificationScreenState extends State<EmailVarificationScreen> {
         child: Form(
           key: _fromKey,
           child: Column(
-            // mainAxisAlignment: MainAxisAlignment.center,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               const SizedBox(
@@ -102,24 +72,36 @@ class _EmailVarificationScreenState extends State<EmailVarificationScreen> {
               const SizedBox(
                 height: 16,
               ),
-              SizedBox(
-                width: double.infinity,
-                child: _isLoading
-                    ? const Center(
-                        child: CupertinoActivityIndicator(
-                        radius: 14,
-                      ))
-                    : ElevatedButton(
-                        onPressed: () {
-                          if (!_fromKey.currentState!.validate()) {
-                            return;
-                          }else{
-                             sendOTPToEmail();
-                          }
-                         
-                        },
-                        child: const Icon(Icons.arrow_circle_right_outlined),
-                      ),
+              GetBuilder<EmailVarificationController>(
+                builder: (_) {
+                  return SizedBox(
+                    width: double.infinity,
+                    child: _emailVarificationController.isLoading
+                        ? const Center(
+                            child: CupertinoActivityIndicator(
+                            radius: 14,
+                          ))
+                        : ElevatedButton(
+                            onPressed: () {
+                              if (!_fromKey.currentState!.validate()) {
+                                return;
+                              }else{
+                                _emailVarificationController.sendOTPToEmail(
+                                    email: _emailController.text.trim()).then((value) {
+                                   if(value == true){
+                                     Get.snackbar("OTP", "has been send to your email");
+                                     Get.to(()=>OtpVarificationScreen(email: _emailController.text.trim()));
+                                   }else{
+                                     Get.snackbar("Faild", "OTP doesn't sent");
+                                   }
+                                });
+                              }
+
+                            },
+                            child: const Icon(Icons.arrow_circle_right_outlined),
+                          ),
+                  );
+                }
               ),
               const SizedBox(
                 height: 16,
