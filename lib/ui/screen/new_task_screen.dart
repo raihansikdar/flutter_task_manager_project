@@ -108,27 +108,27 @@ class _NewTaskScreenState extends State<NewTaskScreen> {
 
  
 
-  void showEditBottomSheet(
-      {required String taskId,
-      required String currentTitle,
-      required String currentDescription}) {
-    final TextEditingController _titleController =
-        TextEditingController(text: currentTitle);
-    final TextEditingController _descriptionController =
-        TextEditingController(text: currentDescription);
-    showModalBottomSheet(
-        isScrollControlled: true,
-        context: context,
-        builder: (context) {
-          return UpdateTaskSheet(
-            titleController: _titleController,
-            descriptionController: _descriptionController,
-            onUpdate: () {
-              getNewTasks();
-            },
-          );
-        });
-  }
+  // void showEditBottomSheet(
+  //     {required String taskId,
+  //     required String currentTitle,
+  //     required String currentDescription}) {
+  //   final TextEditingController _titleController =
+  //       TextEditingController(text: currentTitle);
+  //   final TextEditingController _descriptionController =
+  //       TextEditingController(text: currentDescription);
+  //   showModalBottomSheet(
+  //       isScrollControlled: true,
+  //       context: context,
+  //       builder: (context) {
+  //         return UpdateTaskSheet(
+  //           titleController: _titleController,
+  //           descriptionController: _descriptionController,
+  //           onUpdate: () {
+  //             getNewTasks();
+  //           },
+  //         );
+  //       });
+  // }
 
   void showStatusUpdateBottomSheet({required String taskId, required String taskStatus}) {
     showModalBottomSheet(
